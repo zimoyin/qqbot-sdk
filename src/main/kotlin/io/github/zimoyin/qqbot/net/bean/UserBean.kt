@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.zimoyin.qqbot.bot.contact.Channel
 import io.github.zimoyin.qqbot.bot.contact.ChannelPrivateUser
+import io.vertx.core.json.JsonObject
 import java.io.Serializable
 import java.util.*
 
@@ -197,7 +198,20 @@ data class BotUser(
     val shareUrl: String? = null,
     @field:JsonProperty("welcome_msg")
     val welcomeMsg: String? = null,
-) : Serializable
+    val message: String = "success",
+    val code: Int = 0,
+    @field:JsonProperty("err_code")
+    val errCode: Int = 0,
+    @field:JsonProperty("trace_id")
+    val traceId: String? = null,
+) : Serializable {
+    fun errorMessage(): JsonObject = JsonObject().apply {
+        put("message", message)
+        put("code", code)
+        put("err_code", errCode)
+        put("trace_id", traceId)
+    }
+}
 
 
 /**
