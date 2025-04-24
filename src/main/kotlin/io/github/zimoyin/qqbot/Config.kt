@@ -26,6 +26,7 @@ object Config {
      * 他将在被调用的时候被初始化，你应该在 GLOBAL_VERTX_INSTANCE 初始化之前完成他的修改
      */
     @JvmStatic
+    @get:JvmName("GLOBAL_VERTX_OPTIONS")
     val GLOBAL_VERTX_OPTIONS: VertxOptions by lazy {
         val vertxOptions = VertxOptions()
         vertxOptions.apply {
@@ -43,6 +44,7 @@ object Config {
      * 全局单例 vertx 注意如果你需要使用多个 vertx 实例，请自行组织
      */
     @JvmStatic
+    @get:JvmName("GLOBAL_VERTX_INSTANCE")
     val GLOBAL_VERTX_INSTANCE: Vertx by lazy {
         val options = GLOBAL_VERTX_OPTIONS
         //集群判断，如果有集群配置就创建当前应用中的用于集群的 vertx

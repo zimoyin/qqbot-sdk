@@ -18,6 +18,12 @@ open class LocalLogger(name: String) {
             changeJULogging { VertxLoggerFormatter().format(it) }
         }
 
+        @JvmStatic
+        @JvmOverloads
+        fun getLogger(name: String? = runCatching { Thread.currentThread().stackTrace[2].className }.getOrNull()): LocalLogger {
+            return LocalLogger(name ?: "System")
+        }
+
         /**
          * 判断项目中是否有slf4j的实现类
          */
@@ -74,7 +80,7 @@ open class LocalLogger(name: String) {
                 consoleHandler.filter = Filter { record ->
                     for ((key, value) in levelMap) {
                         val d = value.intValue() <= record.level.intValue()
-                        if (record.sourceClassName?.startsWith(key, true) == true){
+                        if (record.sourceClassName?.startsWith(key, true) == true) {
                             return@Filter d
                         }
                         if (record.loggerName.startsWith(key, true)) {

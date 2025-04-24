@@ -29,33 +29,49 @@ object TencentOpenApiHttpClient {
             field = value
         }
 
+    const val sandBoxHost = "sandbox.api.sgroup.qq.com"
+    const val productionHost = "api.sgroup.qq.com"
+
     @JvmStatic
-    var host = if (isSandBox) "sandbox.api.sgroup.qq.com" else "api.sgroup.qq.com"
+    var host = if (isSandBox) sandBoxHost else productionHost
         set(value) {
             if (isOptionsInitialized) throw IllegalStateException("Options has been initialized. Please set up the sandbox environment before creating the bot")
-            field = value
-            isCustomHost = true
-            if (webSocketForwardingAddress == null) {
-                webSocketForwardingAddress = "wss://${TencentOpenApiHttpClient.host}/websocket"
-                logger.info("已自动设置 WebSocket 转发地址为：${webSocketForwardingAddress}")
-            }
-        }
-
-    var webSocketForwardingAddress: String? = null
-        set(value) {
-            if (isOptionsInitialized) throw IllegalStateException("Options has been initialized. Please set up the sandbox environment before creating the bot")
+            if (field != productionHost && field != sandBoxHost) isCustomHost = true
             field = value
         }
 
+    @JvmStatic
+    fun setHost(path: String, prot: String) {
+        host = "$path:$prot"
+    }
+
+    @JvmStatic
+    fun setHost(path: String, prot: Int) {
+        host = "$path:$prot"
+    }
+
+    @JvmStatic
+    val webSocketForwardingAddress: String
+        get() = "wss://${host}/${webSocketForwardingPath}"
+
+    @JvmStatic
+    var webSocketForwardingPath = "/websocket"
+
+    /**
+     * 是否存在自定义服务器地址
+     */
     @JvmStatic
     var isCustomHost = false
         private set
 
+    /**
+     * 是否使用自定义服务器地址
+     */
     @JvmStatic
     var isUseCustomHost = false
 
     private fun getTencentHost(): String {
-       return if (isSandBox) "sandbox.api.sgroup.qq.com" else "api.sgroup.qq.com"
+        return if (isSandBox) sandBoxHost else productionHost
     }
 
     private val options: WebClientOptions by lazy {

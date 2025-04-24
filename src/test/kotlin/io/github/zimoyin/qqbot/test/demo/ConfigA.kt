@@ -12,8 +12,8 @@ import java.io.File
 
 
 fun loadTokenFromFile(): Token? {
-//  val filePath = "./token_file_2" // 替换为你的 token 文件路径
-  val filePath = "./token_file" // 替换为你的 token 文件路径
+  val filePath = "./token_file_2" // 替换为你的 token 文件路径
+//  val filePath = "./token_file" // 替换为你的 token 文件路径
 
   return try {
     val lines = File(filePath).readLines()

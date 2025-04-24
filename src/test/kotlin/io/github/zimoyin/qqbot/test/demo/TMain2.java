@@ -72,7 +72,7 @@ public class TMain2 {
         }).onFailure(e -> {
             logger.error("登录失败", e);
             bot.close();
-            Config.getGLOBAL_VERTX_INSTANCE().close();
+            Config.GLOBAL_VERTX_INSTANCE().close();
         });
 
     }
