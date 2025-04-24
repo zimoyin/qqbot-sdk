@@ -69,6 +69,7 @@ class BotImp(
             unionOpenid = user.unionOpenID ?: ""
             unionUserAccount = user.unionUserAccount ?: ""
             channelBotId = user.id
+            if (user.code != 0) throw HttpClientException("Unable to provide specific information about the robot: ${user.message}; ${user.errorMessage()}")
         }
     }
 
@@ -79,7 +80,7 @@ class BotImp(
     override fun login(isVerifyHost: Boolean): Future<WebSocket> {
         val promise = Promise.promise<WebSocket>()
 
-        val isForwarding = TencentOpenApiHttpClient.webSocketForwardingAddress == null
+        val isForwarding = !TencentOpenApiHttpClient.isUseCustomHost
         if (isForwarding) logger.warn("QQ 官方机器人平台计划于 2024 年停止使用 WebSocket 协议，请使用 HTTP API 进行机器人操作。使用 start 进行启动")
         if (isForwarding) logger.warn("如果需要使用复用WebSocket，推荐使用 WebHook 开启 WebSocket 转发，让该ws连接 WebHook 开启的 ws")
 
