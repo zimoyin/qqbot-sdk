@@ -1,6 +1,7 @@
 package demo
 
 import io.github.zimoyin.qqbot.Config.GLOBAL_VERTX_INSTANCE
+import io.github.zimoyin.qqbot.LocalLogger.Companion.getLogger
 import io.github.zimoyin.qqbot.bot.Bot.INSTANCE.createBot
 import io.github.zimoyin.qqbot.bot.BotConfigBuilder
 import io.github.zimoyin.qqbot.bot.onEvent
@@ -20,22 +21,26 @@ import java.util.function.Consumer
  */
 fun main() {
 
+    var logger = getLogger()
+    var appId = "xxx"
+    var appSecret = "xxx"
+    var tokenStr = "xxx"
+    var useTokenVersion = 2
 
     // 设置沙盒环境
     isSandBox = true
 
-
     // 获取 Token
     val token = create(
-        WebSocketDemo.appId,
-        WebSocketDemo.token,
-        WebSocketDemo.appSecret
-    ).putVersion(WebSocketDemo.useTokenVersion)
+        appId,
+        tokenStr,
+        appSecret
+    ).putVersion(useTokenVersion)
 
 
     // 监听全局事件（该事件在所有的 Vertx 上传播）
     GlobalEventBus.onEvent<Event> {
-        WebSocketDemo.logger.info("收到事件：" + it.toString())
+        logger.info("收到事件：" + it.toString())
     }
 
 
@@ -49,15 +54,15 @@ fun main() {
     // 监听在当前机器人总线上传播的事件
     // 第一个参数可以省略，设置为 true 后则事件处理逻辑运行在工作线程
     bot.onEvent<Event>(false) {
-        WebSocketDemo.logger.info("收到事件：" + it.toString())
+        logger.info("收到事件：" + it.toString())
     }
 
 
     // 登录
     bot.login().onSuccess(Handler { ws: WebSocket? ->
-        WebSocketDemo.logger.info("登录成功")
+        logger.info("登录成功")
     }).onFailure(Handler { err: Throwable? ->
-        WebSocketDemo.logger.error("登录失败", err)
+        logger.error("登录失败", err)
         bot.close()
         GLOBAL_VERTX_INSTANCE.close()
     })
