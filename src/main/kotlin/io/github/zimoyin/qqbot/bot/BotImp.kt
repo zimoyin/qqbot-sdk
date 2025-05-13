@@ -158,6 +158,7 @@ class BotImp(
         return promise.future()
     }
 
+    @Deprecated("Official ban on active sending")
     override fun send(message: MessageChain): Future<SendMessageResultBean> {
         throw IllegalStateException("You cannot send yourself a message by yourself")
     }

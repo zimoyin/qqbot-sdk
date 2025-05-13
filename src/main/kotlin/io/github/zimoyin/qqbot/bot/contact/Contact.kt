@@ -33,6 +33,7 @@ interface Contact : Serializable {
      *
      * 注意该方法可以发送主动，被动，引用等信息，具体类型请根据协议自定构建信息体. 只有 MessageEvent 类中 信息回复部分 会提供其他方式的直接实现
      */
+    @Deprecated("Official ban on active sending")
     fun send(message: MessageChain): Future<SendMessageResultBean>
 
     /**

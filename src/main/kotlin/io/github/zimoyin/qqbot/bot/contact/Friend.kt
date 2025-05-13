@@ -44,6 +44,7 @@ interface Friend : Contact {
         return HttpAPIClient.recallFriendMessage(this, messageID)
     }
 
+    @Deprecated("Official ban on active sending")
     override fun send(message: MessageChain): Future<SendMessageResultBean> {
         return HttpAPIClient.sendFriendMessage(this, message)
     }

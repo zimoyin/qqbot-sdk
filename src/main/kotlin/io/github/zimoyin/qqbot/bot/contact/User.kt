@@ -100,6 +100,7 @@ open class Sender(
 
 
 
+    @Deprecated("Official ban on active sending")
     override fun send(message: MessageChain): Future<SendMessageResultBean> {
 //        return HttpAPIClient.sendFriendMessage(this, message)
         // TODO 自动分别群组和频道，并向用户发起私聊

@@ -24,6 +24,7 @@ interface Group : Contact {
         return HttpAPIClient.recallGroupMessage(this, messageID)
     }
 
+    @Deprecated("Official ban on active sending")
     override fun send(message: MessageChain): Future<SendMessageResultBean> {
         return HttpAPIClient.sendGroupMessage(this, message)
     }

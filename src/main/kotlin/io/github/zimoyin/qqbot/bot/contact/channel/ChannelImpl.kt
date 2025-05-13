@@ -44,6 +44,7 @@ data class ChannelImpl(
         )
     }
 
+    @Deprecated("Official ban on active sending")
     override fun send(message: MessageChain): Future<SendMessageResultBean> {
         return if (currentID == channelID) HttpAPIClient.sendChannelMessageAsync(this, message)
         else HttpAPIClient.sendChannelPrivateMessageAsync(this, message)
