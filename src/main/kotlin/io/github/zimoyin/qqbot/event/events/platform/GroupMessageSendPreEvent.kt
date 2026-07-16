@@ -7,15 +7,27 @@ import io.github.zimoyin.qqbot.bot.message.MessageChain
 import io.github.zimoyin.qqbot.event.handler.NoneEventHandler
 
 /**
+ * 群消息发送前事件（{@link MessageSendPreEvent} 的群聊特化子类）。
  *
+ * 在群消息**发送到服务器之前**触发。此事件为**全局事件**，仅在全局事件总线中传递。
+ *
+ * 该事件是 {@link MessageSendPreEvent} 的 {@code data class} 具体实现，
+ * 将 {@code contact} 类型特化为 {@link io.github.zimoyin.qqbot.bot.contact.Group}。
+ *
+ * **重要行为说明：**
+ * - 不要直接在此事件中修改消息内容来进行审核拦截，
+ *   请通过 {@link MessageSendPreEvent#interceptor} 静态方法注册拦截器。
+ * - 拦截器可以对 {@code messageChain} 进行修改，并通过设置 {@code intercept = true} 来阻止消息发送。
+ *
+ * @param msgID 待发送消息的唯一标识符（消息ID）
+ * @param messageChain 待发送的消息内容链，可在拦截器中修改
+ * @param contact 目标群组
+ * @param botInfo 当前事件所属的机器人实例信息
+ * @param eventID 事件唯一标识符
  * @author : zimo
  * @date : 2023/12/19
- *
- * 信息向服务器推送前触发该事件
- * 该事件为全局事件，只从全局事件总线中传递
- * 注意该事件只是作为一个通知，不要使用该事件拦截与修改待发送的信息,该事件无法做到
- *
- * 如果相对发送的信息进行审核使用 MessageSendPreEvent.interceptor 方法进行拦截，方法返回 true 则继续发送，否则不发送
+ * @see MessageSendPreEvent
+ * @see GroupMessageSendEvent
  */
 @EventAnnotation.EventMetaType("Platform_GroupMessageSendPreEvent")
 @EventAnnotation.EventHandler(NoneEventHandler::class, true)

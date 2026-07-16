@@ -5,12 +5,21 @@ import io.github.zimoyin.qqbot.event.events.Event
 import io.github.zimoyin.qqbot.event.handler.NoneEventHandler
 
 /**
+ * 平台事件根接口。
+ *
+ * 平台事件是全局级别的事件，通过全局事件总线（Global EventBus）进行传播和分发。
+ * 与普通的本地事件不同，平台事件及其子事件**大多数无法被 Bot 的本地监听器捕获**，
+ * 必须在全局事件总线上注册监听器才能收到。
+ *
+ * **重要行为说明：**
+ * - 平台事件仅在全局事件总线中传播，Bot 本地监听器无法监听到大部分平台事件及其子事件。
+ * - 所有叶子事件（即具体的事件类型）均为具体类（class），因此事件系统在使用时无需
+ *   通过 {@link io.github.zimoyin.qqbot.annotation.EventAnnotation.EventHandler}
+ *   注解指定的事件处理器对事件进行反序列化构建，框架会直接实例化具体类型。
  *
  * @author : zimo
  * @date : 2023/12/19
- *
- * 平台事件，该事件以及子事件多数只能在全局事件总线中进行传播，如果使用了Bot的本地监听是无法监听到大部分该事件以及子事件的
- * 由于事件的特殊性，该叶子事件全部是具体类，因此不需要事件处理器对事件进行构建 [github.zimoyin.annotation.EventAnnotation.EventHandler]
+ * @see io.github.zimoyin.qqbot.event.events.Event
  */
 @EventAnnotation.EventMetaType("Not_MetaType_PlatformEvent")
 @EventAnnotation.EventHandler(NoneEventHandler::class, true)

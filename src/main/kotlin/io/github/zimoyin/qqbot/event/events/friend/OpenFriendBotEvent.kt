@@ -14,28 +14,77 @@ import io.vertx.core.Future
 import java.util.*
 
 /**
+ * C2C 用户开启机器人消息接收事件。
+ *
+ * 当用户在 C2C 私聊会话中操作开启了机器人的消息接收（允许机器人接收私聊消息）时，
+ * QQ 服务器会推送此事件。事件类型标识为 `"C2C_MSG_RECEIVE"`，
+ * 由 [OpenFriendBotHandler] 负责处理。
+ *
+ * 该事件同时继承 [OpenBotOperationEvent] 和 [FriendBotOperationEvent]，
+ * 表示这是一个开启类操作，且属于 C2C 私聊与机器人的交互事件。
+ * 提供了多个 [reply] 重载方法用于被动回复消息。
  *
  * @author : zimo
  * @date : 2023/12/20
- *
- * 群管理员主动在机器人资料页操作关闭通知
  */
 @EventAnnotation.EventMetaType("C2C_MSG_RECEIVE")
 @EventAnnotation.EventHandler(OpenFriendBotHandler::class)
 data class OpenFriendBotEvent(
+    /**
+     * 事件的元数据/原始 JSON 数据。
+     */
     override val metadata: String,
+    /**
+     * 事件类型标识符，固定为 `"C2C_MSG_RECEIVE"`。
+     */
     override val metadataType: String = "C2C_MSG_RECEIVE",
+    /**
+     * 当前事件所属的机器人实例信息。
+     */
     override val botInfo: BotInfo,
+    /**
+     * 事件发生的时间戳。
+     */
     override val timestamp: Date,
+    /**
+     * 开启消息接收的用户好友标识符。
+     */
     override val friendID: String,
+    /**
+     * 事件的唯一标识符，由 QQ 服务器下发。
+     */
     override val eventID: String = "",
+    /**
+     * 私聊好友实例对象，用于向该用户发送私聊消息。
+     */
     val windows: PrivateFriend
 ) : OpenBotOperationEvent,FriendBotOperationEvent {
+    /**
+     * 消息序列号，每次调用 [reply] 后自增。
+     *
+     * 用于保证消息的发送顺序，避免并发场景下的乱序问题。
+     */
     var msgSeq: Int = 1
+
+    /**
+     * 被动回复文本消息给该好友。
+     *
+     * @param msg 要回复的文本内容
+     * @return 包含发送结果的 [Future]
+     */
     fun reply(msg: String): Future<SendMessageResultBean> {
         return reply(MessageChainBuilder().appendMeqSeq(msgSeq++).append(msg).build())
     }
 
+    /**
+     * 被动回复消息链给该好友。
+     *
+     * 如果 [message] 中已设置了 [replyEventID]，则优先使用消息中指定的回复 ID。
+     * 当 [eventID] 和消息中的 [replyEventID] 均为空时，发送会失败。
+     *
+     * @param message 要回复的消息链
+     * @return 包含发送结果的 [Future]
+     */
     fun reply(message: MessageChain): Future<SendMessageResultBean> {
         val eventID = if (message.replyEventID.isNullOrEmpty()) {
             eventID
@@ -50,6 +99,12 @@ data class OpenFriendBotEvent(
         )
     }
 
+    /**
+     * 被动回复一组消息项给该好友。
+     *
+     * @param items 要回复的消息项（可变参数）
+     * @return 包含发送结果的 [Future]
+     */
     fun reply(vararg items: MessageItem): Future<SendMessageResultBean> {
         return reply(MessageChainBuilder().appendMeqSeq(msgSeq++).appendEventId(eventID).appendItems(*items).build())
     }

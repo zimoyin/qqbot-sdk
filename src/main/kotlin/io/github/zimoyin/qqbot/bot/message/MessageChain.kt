@@ -136,8 +136,14 @@ class MessageChain(
         return internalItems.iterator()
     }
 
+    /**
+     * 通过索引获取信息实例
+     */
     fun get(index: Int): MessageItem = internalItems[index]
 
+    /**
+     * 从信息链中获取指定类型的信息类型集合
+     */
     inline fun <reified T : MessageItem> get(): ArrayList<T> {
         val list = ArrayList<T>()
         toList().forEach {
