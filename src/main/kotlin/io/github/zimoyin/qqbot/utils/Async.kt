@@ -6,6 +6,7 @@ import io.github.zimoyin.qqbot.annotation.UntestedApi
 import io.github.zimoyin.qqbot.utils.ex.promise
 import io.vertx.core.Context
 import io.vertx.core.Future
+import io.vertx.core.Future.await
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
 import io.vertx.core.impl.ContextImpl
@@ -113,7 +114,7 @@ fun coroutine(callback: suspend CoroutineScope.() -> Unit): Job = CoroutineScope
  */
 fun <T> async(
     dispatcher: CoroutineDispatcher = Dispatchers.vertxWorker(),
-    callback: suspend CoroutineScope.() -> T
+    callback: suspend CoroutineScope.() -> T,
 ): Deferred<T> =
     CoroutineScope(dispatcher).async {
         callback()
@@ -264,66 +265,57 @@ fun workerThread(callback: () -> Unit) {
  *     }
  */
 class AsyncValue<T>(
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val producer: suspend () -> T,
 ) {
-    private var result: T? = null
-    private var finished: Boolean = false
-    private var exception: Throwable? = null
-    private var production: Deferred<T?> = async(dispatcher) {
-        try {
-            return@async producer().apply {
-                if (!finished) result = this
-                finished = true
-            }
-        } catch (e: Exception) {
-            exception = e
-            finished = true
-        }
-        null
-    }
+    /**
+     * 非委托下可以访问
+     * 是否已经生产完成
+     */
+    var finished = false
+        private set
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        if (exception != null) throw exception!!
-        return if (finished) result ?: throw NullPointerException("The value[$property] produced is null")
-        else runBlocking { blockThreadAwaitResult() }
-            ?: throw NullPointerException("The value[$property] produced is null")
-    }
+    /**
+     * 非委托下可以访问
+     * 产生的值，如果值还未生产完成、异常报错、产生Null，则返回null
+     */
+    var result: T? = null
+        private set
 
+    /**
+     * 非委托下可以访问
+     * 产生的异常，如果异常未产生、未异常报错则返回null
+     */
+    var exception: Throwable? = null
+        private set
+
+    private var production: Deferred<T?> = CoroutineScope(dispatcher).async {
+        runCatching { producer() }
+            .onFailure { exception = it }
+            .onSuccess { result = result ?: it }
+            .getOrNull()
+            .apply { finished = true }
+    }
 
     /**
      * 获取值，如果值还未生产完成，则挂起协程等待
      */
-    suspend fun await(): T {
-        return if (finished) {
-            result!!
-        } else {
-            production.await()
-            if (exception != null) {
-                throw exception!!
-            } else {
-                result!!
-            }
-        }
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        val result = runBlocking { await() }
+        if (result == null && exception != null) throw exception!!
+        if (result == null) throw NullPointerException("The value[$property] produced is null")
+        return result
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        kotlin.runCatching { production.cancel() }
-        finished = true
+        runCatching { production.cancel() }
         result = value
     }
 
-    private suspend fun blockThreadAwaitResult(): T? {
-        return if (finished) {
-            if (exception != null) throw exception!!
-            result
-        } else {
-            while (!finished) {
-//                Thread.sleep(100)
-                delay(100)
-            }
-            if (exception != null) throw exception!!
-            result
-        }
+    /**
+     * 获取值，如果值还未生产完成，则挂起协程等待
+     */
+    suspend fun await(): T? = result ?: production.await().apply {
+        if (exception != null) throw exception!!
     }
 }
