@@ -23,7 +23,8 @@ class GroupAtMessageHandler : AbsEventHandler<GroupAtMessageEvent>() {
     private val logger = LoggerFactory.getLogger(GroupAtMessageHandler::class.java)
 
     override fun handle(payload: Payload): GroupAtMessageEvent {
-        // Group 不会下发用户的名称的，所以给用户名称设置成ID，防止错误
+        // 注意：部分机器人服务器会下发 username，部分不会。
+        // 如果 username 不为空则直接使用；如果为空则回退到 id 作为 username
         val jsonString = payload.eventContent.toString()
         val mapper = ObjectMapper()
         val jsonNode = mapper.readTree(jsonString)
@@ -31,13 +32,11 @@ class GroupAtMessageHandler : AbsEventHandler<GroupAtMessageEvent>() {
         var jsonObject = jsonNode.toJsonObject()
         jsonObject = jsonObject.apply {
             val value = getJsonObject("author")?.apply {
-                if (getString("username") != null) throw IllegalArgumentException("Group At Message Event: Group 下发了 username，请联系开发者修正该部分代码")
-                else put("username", getString("id"))
+                if (getString("username") == null) put("username", getString("id"))
             }
             put("author", value)
         }
 
-        //        val message = JSON.toObject<Message>(payload.eventContent.toString()) // 如果Group 下发了 username 就使用该代码，并把上面代码删除
         val message = JSON.toObject<Message>(jsonObject)
         val msgID = message.msgID!!
         val messageChain = MessageChain.convert(message)
